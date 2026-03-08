@@ -13,6 +13,8 @@ const SELECT = [
   "market_value_tier","scarcity_score","national_scarcity","market_premium",
   "scouting_notes",
   "pursuit_status","director_valuation_meur","fit_note",
+  "squad_role","loan_status",
+  "blueprint","attributes",
 ].join(", ");
 
 const ALLOWED = [
@@ -21,6 +23,8 @@ const ALLOWED = [
   "model","primary","secondary","archetype_override",
   "scouting_notes",
   "pursuit_status","director_valuation_meur","fit_note",
+  "squad_role","loan_status",
+  "blueprint","attributes",
 ];
 
 const SORT_FIELDS: Record<string, { column: string; ascending: boolean; nullsFirst: boolean }> = {

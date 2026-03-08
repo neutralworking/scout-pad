@@ -13,7 +13,19 @@ const SELECT = [
   "market_value_tier","scarcity_score","national_scarcity","market_premium",
   "scouting_notes",
   "pursuit_status","director_valuation_meur","fit_note",
+  "squad_role","loan_status",
+  "blueprint","attributes",
 ].join(", ");
+
+const ALLOWED = [
+  "position","secondary_position","level","peak",
+  "Character","Mentality","Foot","Physique",
+  "model","primary","secondary","archetype_override",
+  "scouting_notes",
+  "pursuit_status","director_valuation_meur","fit_note",
+  "squad_role","loan_status",
+  "blueprint","attributes",
+];
 
 export async function GET(
   _req: Request,

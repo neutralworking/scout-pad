@@ -20,6 +20,8 @@ interface Player {
   fit_note: string | null;
   squad_role: string | null;
   loan_status: string | null;
+  blueprint: string | null;
+  attributes: Record<string, string> | null;
 }
 
 interface Suitability {
@@ -90,6 +92,12 @@ export default function PlayerProfile() {
   const [notes, setNotes] = useState("");
   const [squadRole, setSquadRole] = useState<string>("");
   const [loanStatus, setLoanStatus] = useState<string>("");
+  const [blueprint, setBlueprint] = useState<string>("");
+  const [attrPace, setAttrPace] = useState<string>("");
+  const [attrPhysicality, setAttrPhysicality] = useState<string>("");
+  const [attrPressing, setAttrPressing] = useState<string>("");
+  const [attrVision, setAttrVision] = useState<string>("");
+  const [attrFirstTouch, setAttrFirstTouch] = useState<string>("");
 
   useEffect(() => {
     const id = params.id as string;
@@ -109,6 +117,12 @@ export default function PlayerProfile() {
         setNotes(p.scouting_notes ?? "");
         setSquadRole(p.squad_role ?? "");
         setLoanStatus(p.loan_status ?? "");
+        setBlueprint(p.blueprint ?? "");
+        setAttrPace(p.attributes?.pace ?? "");
+        setAttrPhysicality(p.attributes?.physicality ?? "");
+        setAttrPressing(p.attributes?.pressing ?? "");
+        setAttrVision(p.attributes?.vision ?? "");
+        setAttrFirstTouch(p.attributes?.first_touch ?? "");
       } catch { router.push("/"); }
       finally { setLoading(false); }
     })();
@@ -135,6 +149,29 @@ export default function PlayerProfile() {
       payload.squad_role = squadRole || null;
     if (loanStatus !== (player.loan_status ?? ""))
       payload.loan_status = loanStatus || null;
+    if (blueprint !== (player.blueprint ?? ""))
+      payload.blueprint = blueprint || null;
+
+    const origPace = player.attributes?.pace ?? "";
+    const origPhysicality = player.attributes?.physicality ?? "";
+    const origPressing = player.attributes?.pressing ?? "";
+    const origVision = player.attributes?.vision ?? "";
+    const origFirstTouch = player.attributes?.first_touch ?? "";
+    if (
+      attrPace !== origPace ||
+      attrPhysicality !== origPhysicality ||
+      attrPressing !== origPressing ||
+      attrVision !== origVision ||
+      attrFirstTouch !== origFirstTouch
+    ) {
+      payload.attributes = {
+        pace: attrPace || null,
+        physicality: attrPhysicality || null,
+        pressing: attrPressing || null,
+        vision: attrVision || null,
+        first_touch: attrFirstTouch || null,
+      };
+    }
 
     if (Object.keys(payload).length <= 1) { setSaving(false); return; }
 
@@ -148,7 +185,7 @@ export default function PlayerProfile() {
       setTimeout(() => setSaved(false), 2000);
     } catch {}
     finally { setSaving(false); }
-  }, [player, pursuit, valuation, fitNote, notes, squadRole, loanStatus, saving]);
+  }, [player, pursuit, valuation, fitNote, notes, squadRole, loanStatus, blueprint, attrPace, attrPhysicality, attrPressing, attrVision, attrFirstTouch, saving]);
 
   if (loading || !player) return (
     <div style={{ height: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)" }}>
@@ -156,7 +193,9 @@ export default function PlayerProfile() {
     </div>
   );
 
-  const arch = null; // Archetype hidden until logic is solid enough to display
+  const arch = (player.archetype_confidence === "high" || player.blueprint)
+    ? (player.archetype_override ?? player.archetype)
+    : null;
   const traits = player.Character ? player.Character.split(",").map(s => s.trim()).filter(Boolean) : [];
 
   return (
@@ -319,10 +358,15 @@ export default function PlayerProfile() {
               <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginBottom: 12 }}>
                 {player.primary && <InfoItem label="Primary Class" value={player.primary} />}
                 {player.secondary && <InfoItem label="Secondary Class" value={player.secondary} />}
-                {arch && <InfoItem label="Archetype" value={arch} />}
+                {(arch || player.blueprint) && (
+                  <InfoItem
+                    label={player.blueprint ? "Blueprint" : "Archetype"}
+                    value={player.blueprint ?? arch ?? ""}
+                  />
+                )}
               </div>
               {traits.length > 0 && (
-                <div>
+                <div style={{ marginBottom: 14 }}>
                   <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Traits</div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
                     {traits.map(t => (
@@ -334,6 +378,48 @@ export default function PlayerProfile() {
                   </div>
                 </div>
               )}
+              <div style={{ marginBottom: 14 }}>
+                <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Blueprint</div>
+                <input
+                  type="text"
+                  className="profile-input"
+                  placeholder="Plays like..."
+                  value={blueprint}
+                  onChange={e => setBlueprint(e.target.value)}
+                  style={{ fontSize: "0.82rem", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8 }}
+                />
+              </div>
+              <div>
+                <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Key Attributes</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+                  {([
+                    { label: "Pace", value: attrPace, set: setAttrPace },
+                    { label: "Physicality", value: attrPhysicality, set: setAttrPhysicality },
+                    { label: "Pressing", value: attrPressing, set: setAttrPressing },
+                    { label: "Vision", value: attrVision, set: setAttrVision },
+                    { label: "First Touch", value: attrFirstTouch, set: setAttrFirstTouch },
+                  ] as { label: string; value: string; set: (v: string) => void }[]).map(attr => (
+                    <div key={attr.label}>
+                      <div style={{ fontSize: "0.58rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{attr.label}</div>
+                      <select
+                        value={attr.value}
+                        onChange={e => attr.set(e.target.value)}
+                        style={{
+                          padding: "4px 8px", borderRadius: 8, fontSize: "0.78rem", fontWeight: 600,
+                          background: "var(--surface2)", border: "1px solid var(--border)",
+                          color: attr.value ? "var(--text2)" : "var(--text3)", cursor: "pointer",
+                        }}
+                      >
+                        <option value="">—</option>
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Elite">Elite</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
