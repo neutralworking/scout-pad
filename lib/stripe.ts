@@ -1,9 +1,16 @@
 import Stripe from "stripe";
 import { SupabaseClient } from "@supabase/supabase-js";
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia",
-});
+function getStripe() {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error("STRIPE_SECRET_KEY is not set");
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: "2025-02-24.acacia",
+  });
+}
+
+export { getStripe };
 
 export const TIER_LIMITS = {
   free: { playerLimit: 500, showArchetypes: false, apiAccess: false },
@@ -38,7 +45,7 @@ export async function createCheckoutSession(
   userEmail: string,
   priceId: string
 ): Promise<Stripe.Checkout.Session> {
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     customer_email: userEmail,
     line_items: [{ price: priceId, quantity: 1 }],
