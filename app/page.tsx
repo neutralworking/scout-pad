@@ -16,6 +16,7 @@ interface Player {
   Mentality: string | null;
   primary: string | null;
   archetype: string | null;
+  archetype_confidence: string | null;
   market_value_tier: number | null;
   scarcity_score: number | null;
   pursuit_status: string | null;
@@ -175,7 +176,7 @@ export default function PlayersPage() {
                     {p.level ?? "—"}
                   </td>
                   <td style={{ ...cellStyle, color: "var(--text3)", fontSize: "0.75rem" }}>
-                    {p.archetype || "—"}
+                    {p.archetype_confidence === "high" ? (p.archetype || "—") : "—"}
                   </td>
                   <td style={cellStyle}>
                     {p.pursuit_status && <span className={pursuitClass(p.pursuit_status)}>{p.pursuit_status}</span>}

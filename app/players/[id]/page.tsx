@@ -11,7 +11,7 @@ interface Player {
   Character: string | null; Mentality: string | null; Foot: string | null;
   Physique: string | null; model: string | null;
   primary: string | null; secondary: string | null;
-  archetype: string | null; archetype_override: string | null;
+  archetype: string | null; archetype_confidence: string | null; archetype_override: string | null;
   market_value_tier: number | null; scarcity_score: number | null;
   national_scarcity: number | null; market_premium: number | null;
   scouting_notes: string | null;
@@ -146,7 +146,10 @@ export default function PlayerProfile() {
     </div>
   );
 
-  const arch = player.archetype_override ?? player.archetype;
+  const archRaw = player.archetype_override ?? player.archetype;
+  // Only display archetype when we have scouted level data (confidence = "high"),
+  // or when it was manually overridden by the director.
+  const arch = (player.archetype_override || player.archetype_confidence === "high") ? archRaw : null;
   const traits = player.Character ? player.Character.split(",").map(s => s.trim()).filter(Boolean) : [];
 
   return (
