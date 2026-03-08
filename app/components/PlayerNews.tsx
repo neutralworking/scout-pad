@@ -99,7 +99,7 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     background: "var(--surface)",
     border: "1px solid var(--border)",
-    borderRadius: 8,
+    borderRadius: 12,
     padding: "12px 14px",
     display: "flex",
     flexDirection: "column",

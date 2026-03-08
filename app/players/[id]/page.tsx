@@ -20,12 +20,23 @@ interface Player {
   fit_note: string | null;
 }
 
+interface Suitability {
+  score: number | null;
+  reason?: string;
+  breakdown: { factor: string; points: number; detail: string }[];
+  matched_need: Record<string, unknown> | null;
+}
+
 const PURSUIT_OPTIONS = [
   { value: "Pass",       label: "Pass",       color: "var(--text3)",  bg: "var(--surface2)", border: "var(--border2)" },
   { value: "Watch",      label: "Watch",      color: "var(--text2)",  bg: "var(--surface2)", border: "var(--text3)" },
   { value: "Interested", label: "Interested", color: "var(--accent)", bg: "var(--accent-dim)", border: "var(--accent)" },
   { value: "Priority",   label: "Priority",   color: "var(--amber)",  bg: "var(--amber-dim)", border: "var(--amber)" },
 ] as const;
+
+const FACTOR_MAX: Record<string, number> = {
+  Position: 30, "Market Value": 20, Archetype: 15, Foot: 10, Quality: 15, Scarcity: 9,
+};
 
 function tierLabel(v: number) {
   if (v >= 90) return "World Class";
@@ -45,6 +56,21 @@ function dots(score: number | null, max = 5) {
   ));
 }
 
+/** Read neighbor player IDs from sessionStorage (written by the list page). */
+function getNeighborIds(currentId: string): { prev: string | null; next: string | null } {
+  try {
+    const raw = sessionStorage.getItem("playerListIds");
+    if (!raw) return { prev: null, next: null };
+    const ids: number[] = JSON.parse(raw);
+    const idx = ids.indexOf(Number(currentId));
+    if (idx === -1) return { prev: null, next: null };
+    return {
+      prev: idx > 0 ? String(ids[idx - 1]) : null,
+      next: idx < ids.length - 1 ? String(ids[idx + 1]) : null,
+    };
+  } catch { return { prev: null, next: null }; }
+}
+
 export default function PlayerProfile() {
   const params = useParams();
   const router = useRouter();
@@ -52,7 +78,8 @@ export default function PlayerProfile() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [suitability, setSuitability] = useState<{ score: number; breakdown: { factor: string; points: number; detail: string }[]; matched_need: Record<string, unknown> | null } | null>(null);
+  const [suitability, setSuitability] = useState<Suitability | null>(null);
+  const [neighbors, setNeighbors] = useState<{ prev: string | null; next: string | null }>({ prev: null, next: null });
 
   // Editable fields
   const [pursuit, setPursuit] = useState<string>("");
@@ -61,10 +88,14 @@ export default function PlayerProfile() {
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
+    const id = params.id as string;
+    setNeighbors(getNeighborIds(id));
+
     (async () => {
       setLoading(true);
+      setSuitability(null);
       try {
-        const res = await fetch(`/api/players/${params.id}`);
+        const res = await fetch(`/api/players/${id}`);
         if (!res.ok) { router.push("/"); return; }
         const p: Player = await res.json();
         setPlayer(p);
@@ -75,10 +106,10 @@ export default function PlayerProfile() {
       } catch { router.push("/"); }
       finally { setLoading(false); }
     })();
-    // Fetch suitability score
-    fetch(`/api/players/${params.id}/suitability`)
+
+    fetch(`/api/players/${id}/suitability`)
       .then(r => r.ok ? r.json() : null)
-      .then(d => { if (d?.score != null) setSuitability(d); })
+      .then(d => { if (d) setSuitability(d); })
       .catch(() => {});
   }, [params.id, router]);
 
@@ -133,8 +164,27 @@ export default function PlayerProfile() {
           Players
         </Link>
         <span style={{ color: "var(--text3)" }}>/</span>
-        <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>{player.name}</span>
+        <span style={{ fontWeight: 600, fontSize: "0.82rem", color: "var(--text2)" }}>{player.name}</span>
+
         <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+          {/* Prev / Next */}
+          <button
+            className="nav-btn"
+            disabled={!neighbors.prev}
+            onClick={() => neighbors.prev && router.push(`/players/${neighbors.prev}`)}
+            aria-label="Previous player"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>
+          </button>
+          <button
+            className="nav-btn"
+            disabled={!neighbors.next}
+            onClick={() => neighbors.next && router.push(`/players/${neighbors.next}`)}
+            aria-label="Next player"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 6l6 6-6 6"/></svg>
+          </button>
+
           {saved && <span style={{ fontSize: "0.75rem", color: "var(--green)", fontWeight: 700 }}>Saved</span>}
           <button onClick={handleSave} style={{
             padding: "7px 18px", borderRadius: 8, fontSize: "0.82rem", fontWeight: 700,
@@ -145,10 +195,10 @@ export default function PlayerProfile() {
 
       {/* ── Content ── */}
       <div style={{ flex: 1, overflow: "auto", padding: "20px 24px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, maxWidth: 1100 }}>
+        <div className="profile-grid">
 
           {/* ── Left column: Player info ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div className="profile-col">
             {/* Header card */}
             <div style={cardStyle}>
               <h2 style={{ fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>
@@ -242,9 +292,9 @@ export default function PlayerProfile() {
           </div>
 
           {/* ── Right column: DoF evaluation ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div className="profile-col profile-col--right">
             {/* Suitability score */}
-            {suitability && suitability.score != null && (
+            {suitability && suitability.score != null ? (
               <div style={cardStyle}>
                 <SectionLabel>Suitability Score</SectionLabel>
                 <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 12 }}>
@@ -275,7 +325,7 @@ export default function PlayerProfile() {
                       <div style={{ flex: 1, height: 6, background: "var(--surface2)", borderRadius: 3, overflow: "hidden" }}>
                         <div style={{
                           height: "100%", borderRadius: 3,
-                          width: `${Math.min(100, (b.points / { Position: 30, "Market Value": 20, Archetype: 15, Foot: 10, Quality: 15, Scarcity: 9 }[b.factor]!) * 100)}%`,
+                          width: `${Math.min(100, (b.points / (FACTOR_MAX[b.factor] ?? 1)) * 100)}%`,
                           background: b.points > 0 ? "var(--accent)" : "var(--border2)",
                         }} />
                       </div>
@@ -284,7 +334,16 @@ export default function PlayerProfile() {
                   ))}
                 </div>
               </div>
-            )}
+            ) : suitability?.score === null ? (
+              <div style={{
+                background: "var(--surface2)", border: "1px dashed var(--border2)",
+                borderRadius: 12, padding: 20, textAlign: "center",
+              }}>
+                <div style={{ fontSize: "0.75rem", color: "var(--text3)" }}>
+                  Set up club needs to see suitability scores
+                </div>
+              </div>
+            ) : null}
 
             {/* Pursuit status */}
             <div style={cardStyle}>
@@ -310,39 +369,25 @@ export default function PlayerProfile() {
               </div>
             </div>
 
-            {/* Valuation */}
+            {/* Valuation + Fit Note (merged) */}
             <div style={cardStyle}>
-              <SectionLabel>Valuation</SectionLabel>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <SectionLabel>Valuation & Fit</SectionLabel>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
                 <input
                   type="number" min={0} max={999} placeholder="—"
+                  className="profile-input profile-input--val"
                   value={valuation}
                   onChange={e => setValuation(e.target.value)}
-                  style={{
-                    width: 100, padding: "8px 12px", background: "var(--surface2)",
-                    border: "1px solid var(--border)", borderRadius: 8,
-                    color: "var(--text)", fontSize: "1.1rem", fontWeight: 700,
-                    outline: "none", fontFamily: "inherit", textAlign: "right",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
                 />
                 <span style={{ fontWeight: 700, color: "var(--text2)", fontSize: "0.9rem" }}>M&euro;</span>
               </div>
-            </div>
-
-            {/* Fit note */}
-            <div style={cardStyle}>
-              <SectionLabel>Fit Note</SectionLabel>
+              <div style={{ fontSize: "0.6rem", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Fit Note</div>
               <input
                 type="text"
+                className="profile-input"
                 placeholder="e.g. plays behind our CF as the 10..."
                 value={fitNote}
                 onChange={e => setFitNote(e.target.value)}
-                style={{
-                  width: "100%", padding: "9px 12px", background: "var(--surface2)",
-                  border: "1px solid var(--border)", borderRadius: 8,
-                  color: "var(--text)", fontSize: "0.85rem", outline: "none", fontFamily: "inherit",
-                }}
               />
             </div>
 
@@ -350,16 +395,12 @@ export default function PlayerProfile() {
             <div style={{ ...cardStyle, flex: 1, display: "flex", flexDirection: "column" }}>
               <SectionLabel>Scouting Notes</SectionLabel>
               <textarea
+                className="profile-textarea"
                 rows={10}
                 placeholder="Your read on this player..."
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
-                style={{
-                  flex: 1, width: "100%", padding: "10px 12px", background: "var(--surface2)",
-                  border: "1px solid var(--border)", borderRadius: 10,
-                  color: "var(--text)", fontSize: "0.82rem", outline: "none",
-                  fontFamily: "inherit", lineHeight: 1.6, resize: "none", minHeight: 160,
-                }}
+                style={{ flex: 1 }}
               />
             </div>
 

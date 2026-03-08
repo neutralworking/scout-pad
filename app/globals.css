@@ -281,7 +281,45 @@ body {
 .pursuit-pill-watch { background: var(--surface2); color: var(--text2); border-color: var(--border2); }
 .pursuit-pill-pass { background: var(--surface); color: var(--text3); border-color: var(--border); }
 
+/* ── Profile page ─────────────────────────────────────────────────────────── */
+.profile-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px; max-width: 1100px;
+}
+.profile-col { display: flex; flex-direction: column; gap: 20px; }
+.profile-input {
+  width: 100%; padding: 9px 12px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-size: 0.85rem; outline: none; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.profile-input:focus { border-color: var(--accent); }
+.profile-input::placeholder { color: var(--text3); }
+.profile-input--val {
+  width: 100px; padding: 8px 12px; font-size: 1.1rem; font-weight: 700;
+  text-align: right; font-variant-numeric: tabular-nums;
+}
+.profile-textarea {
+  width: 100%; padding: 10px 12px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-size: 0.82rem; outline: none; font-family: inherit;
+  line-height: 1.6; resize: none; min-height: 160px;
+  transition: border-color 0.15s;
+}
+.profile-textarea:focus { border-color: var(--accent); }
+.profile-textarea::placeholder { color: var(--text3); }
+
+.nav-btn {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 6px;
+  background: var(--surface2); border: 1px solid var(--border2);
+  color: var(--text2); cursor: pointer; transition: all 0.15s;
+}
+.nav-btn:hover { background: var(--border2); border-color: var(--text3); }
+.nav-btn:disabled { opacity: 0.35; cursor: default; pointer-events: none; }
+
 /* ── Responsive layout ────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
   .main-content { margin-left: 0 !important; }
+  .profile-grid { grid-template-columns: 1fr; }
+  .profile-col--right { order: -1; }
 }

@@ -72,6 +72,8 @@ export default function PlayersPage() {
       const data = await res.json();
       const list = Array.isArray(data) ? data : data.data ?? [];
       setPlayers(list);
+      // Store IDs for prev/next navigation on the profile page
+      try { sessionStorage.setItem("playerListIds", JSON.stringify(list.map((p: Player) => p.id))); } catch {}
       if (data.count !== undefined) setTotal(data.count);
       else setTotal(list.length + newOffset);
       setOffset(newOffset);
@@ -194,7 +196,7 @@ export default function PlayersPage() {
         padding: "10px 24px", borderTop: "1px solid var(--border)", flexShrink: 0,
         fontSize: "0.78rem", color: "var(--text3)",
       }}>
-        <span>{offset + 1}–{offset + players.length} shown</span>
+        <span>{loading && !players.length ? "Loading..." : `${offset + 1}–${offset + players.length} shown`}</span>
         <div style={{ display: "flex", gap: 6 }}>
           <button onClick={() => fetchPlayers(Math.max(0, offset - limit))} disabled={!hasPrev}
             style={pageBtnStyle(hasPrev)}>Prev</button>

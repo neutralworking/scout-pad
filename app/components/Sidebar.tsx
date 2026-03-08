@@ -32,7 +32,7 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
+    if (href === "/") return pathname === "/" || pathname.startsWith("/players");
     return pathname.startsWith(href);
   };
 
