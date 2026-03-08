@@ -23,20 +23,70 @@ const ALLOWED = [
   "pursuit_status","director_valuation_meur","fit_note",
 ];
 
+const SORT_FIELDS: Record<string, { column: string; ascending: boolean; nullsFirst: boolean }> = {
+  market_value_tier_desc: { column: "market_value_tier", ascending: false, nullsFirst: false },
+  market_value_tier_asc:  { column: "market_value_tier", ascending: true,  nullsFirst: true },
+  name_asc:               { column: "name",              ascending: true,  nullsFirst: false },
+  name_desc:              { column: "name",              ascending: false, nullsFirst: false },
+  scarcity_score_desc:    { column: "scarcity_score",    ascending: false, nullsFirst: false },
+  scarcity_score_asc:     { column: "scarcity_score",    ascending: true,  nullsFirst: true },
+};
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const limit  = parseInt(searchParams.get("limit")  ?? "60");
-  const offset = parseInt(searchParams.get("offset") ?? "0");
+  const limit    = parseInt(searchParams.get("limit")  ?? "60");
+  const offset   = parseInt(searchParams.get("offset") ?? "0");
+  const search   = searchParams.get("search")?.trim()   ?? "";
+  const position = searchParams.get("position")          ?? "";
+  const mvt      = searchParams.get("mvt")               ?? "";
+  const pursuit  = searchParams.get("pursuit")           ?? "";
+  const division = searchParams.get("division")          ?? "";
+  const sortKey  = searchParams.get("sort")              ?? "market_value_tier_desc";
 
-  // Exclude Pass; unassessed (null pursuit_status) come first, then MVT desc
-  const { data, error } = await supabase
+  let query = supabase
     .from("players")
     .select(SELECT)
-    .or("club.not.is.null,division.not.is.null")
-    .or("pursuit_status.is.null,pursuit_status.neq.Pass")
+    .or("club.not.is.null,division.not.is.null");
+
+  // --- filters ---
+
+  if (search) {
+    query = query.ilike("name", `%${search}%`);
+  }
+
+  if (position) {
+    query = query.eq("position", position);
+  }
+
+  if (mvt) {
+    query = query.eq("market_value_tier", mvt);
+  }
+
+  if (pursuit === "unset") {
+    query = query.is("pursuit_status", null);
+  } else if (pursuit) {
+    query = query.eq("pursuit_status", pursuit);
+  } else {
+    // Default behaviour: exclude "Pass"
+    query = query.or("pursuit_status.is.null,pursuit_status.neq.Pass");
+  }
+
+  if (division) {
+    query = query.eq("division", division);
+  }
+
+  // --- sorting ---
+
+  const sort = SORT_FIELDS[sortKey] ?? SORT_FIELDS["market_value_tier_desc"];
+  query = query
     .order("pursuit_status", { ascending: true, nullsFirst: true })
-    .order("market_value_tier", { ascending: false, nullsFirst: false })
-    .range(offset, offset + limit - 1);
+    .order(sort.column, { ascending: sort.ascending, nullsFirst: sort.nullsFirst });
+
+  // --- pagination ---
+
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

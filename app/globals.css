@@ -270,3 +270,18 @@ body {
 }
 .btn-save.hot { background: var(--green); border-color: var(--green); color: white; box-shadow: 0 3px 16px rgba(34,197,94,0.25); }
 .btn-save:active { transform: scale(0.97); }
+
+/* ── Pursuit pills (table view) ───────────────────────────────────────────── */
+.pursuit-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 5px;
+  font-size: 0.7rem; font-weight: 700; border: 1px solid transparent;
+}
+.pursuit-pill-priority { background: var(--amber-dim); color: var(--amber); border-color: rgba(245,158,11,0.3); }
+.pursuit-pill-interested { background: var(--accent-dim); color: var(--accent); border-color: rgba(79,142,247,0.3); }
+.pursuit-pill-watch { background: var(--surface2); color: var(--text2); border-color: var(--border2); }
+.pursuit-pill-pass { background: var(--surface); color: var(--text3); border-color: var(--border); }
+
+/* ── Responsive layout ────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .main-content { margin-left: 0 !important; }
+}
