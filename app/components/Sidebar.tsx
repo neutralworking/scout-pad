@@ -147,7 +147,7 @@ export default function Sidebar() {
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: "8px 0" }}>
+        <nav style={{ flex: 1, padding: "8px 0", overflow: "auto" }}>
           {NAV_ITEMS.map((item) => {
             const active = isActive(item.href);
             return (
@@ -190,6 +190,48 @@ export default function Sidebar() {
             );
           })}
         </nav>
+
+        {/* Sign out */}
+        <div
+          style={{
+            padding: "12px 20px",
+            borderTop: "1px solid var(--border)",
+          }}
+        >
+          <button
+            onClick={async () => {
+              await fetch("/api/auth/signout", { method: "POST" });
+              window.location.href = "/login";
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              width: "100%",
+              padding: "8px 0",
+              fontSize: 13,
+              fontWeight: 400,
+              color: "var(--text2)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = "var(--text)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = "var(--text2)";
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sign Out
+          </button>
+        </div>
       </aside>
 
       {/* Responsive styles injected once */}
