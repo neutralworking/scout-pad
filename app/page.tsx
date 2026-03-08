@@ -176,7 +176,7 @@ export default function PlayersPage() {
                     {p.level ?? "—"}
                   </td>
                   <td style={{ ...cellStyle, color: "var(--text3)", fontSize: "0.75rem" }}>
-                    {p.archetype_confidence === "high" ? (p.archetype || "—") : "—"}
+                    {"—"}
                   </td>
                   <td style={cellStyle}>
                     {p.pursuit_status && <span className={pursuitClass(p.pursuit_status)}>{p.pursuit_status}</span>}

@@ -18,6 +18,8 @@ interface Player {
   pursuit_status: "Pass" | "Watch" | "Interested" | "Priority" | null;
   director_valuation_meur: number | null;
   fit_note: string | null;
+  squad_role: string | null;
+  loan_status: string | null;
 }
 
 interface Suitability {
@@ -86,6 +88,8 @@ export default function PlayerProfile() {
   const [valuation, setValuation] = useState<string>("");
   const [fitNote, setFitNote] = useState("");
   const [notes, setNotes] = useState("");
+  const [squadRole, setSquadRole] = useState<string>("");
+  const [loanStatus, setLoanStatus] = useState<string>("");
 
   useEffect(() => {
     const id = params.id as string;
@@ -103,6 +107,8 @@ export default function PlayerProfile() {
         setValuation(p.director_valuation_meur != null ? String(p.director_valuation_meur) : "");
         setFitNote(p.fit_note ?? "");
         setNotes(p.scouting_notes ?? "");
+        setSquadRole(p.squad_role ?? "");
+        setLoanStatus(p.loan_status ?? "");
       } catch { router.push("/"); }
       finally { setLoading(false); }
     })();
@@ -125,6 +131,10 @@ export default function PlayerProfile() {
       payload.fit_note = fitNote.trim() || null;
     if (notes !== (player.scouting_notes ?? ""))
       payload.scouting_notes = notes.trim() || null;
+    if (squadRole !== (player.squad_role ?? ""))
+      payload.squad_role = squadRole || null;
+    if (loanStatus !== (player.loan_status ?? ""))
+      payload.loan_status = loanStatus || null;
 
     if (Object.keys(payload).length <= 1) { setSaving(false); return; }
 
@@ -138,7 +148,7 @@ export default function PlayerProfile() {
       setTimeout(() => setSaved(false), 2000);
     } catch {}
     finally { setSaving(false); }
-  }, [player, pursuit, valuation, fitNote, notes, saving]);
+  }, [player, pursuit, valuation, fitNote, notes, squadRole, loanStatus, saving]);
 
   if (loading || !player) return (
     <div style={{ height: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text3)" }}>
@@ -146,10 +156,7 @@ export default function PlayerProfile() {
     </div>
   );
 
-  const archRaw = player.archetype_override ?? player.archetype;
-  // Only display archetype when we have scouted level data (confidence = "high"),
-  // or when it was manually overridden by the director.
-  const arch = (player.archetype_override || player.archetype_confidence === "high") ? archRaw : null;
+  const arch = null; // Archetype hidden until logic is solid enough to display
   const traits = player.Character ? player.Character.split(",").map(s => s.trim()).filter(Boolean) : [];
 
   return (
@@ -213,6 +220,42 @@ export default function PlayerProfile() {
                 {player.nation && <span className="badge badge-nation">{player.nation}</span>}
                 {player.position && <span className="badge badge-pos">{player.position}</span>}
                 {player.secondary_position && <span className="badge badge-pos" style={{ opacity: 0.6 }}>{player.secondary_position}</span>}
+                {player.club && (
+                  <select
+                    value={squadRole}
+                    onChange={e => setSquadRole(e.target.value)}
+                    style={{
+                      padding: "3px 8px", borderRadius: 8, fontSize: "0.72rem", fontWeight: 600,
+                      background: "var(--surface2)", border: "1px solid var(--border2)",
+                      color: squadRole ? "var(--text)" : "var(--text3)", cursor: "pointer",
+                    }}
+                  >
+                    <option value="">Squad role...</option>
+                    <option value="key_player">Key Player</option>
+                    <option value="important_player">Important Player</option>
+                    <option value="rotation">Rotation</option>
+                    <option value="backup">Backup</option>
+                    <option value="youth">Youth</option>
+                  </select>
+                )}
+                {player.club && (
+                  <select
+                    value={loanStatus}
+                    onChange={e => setLoanStatus(e.target.value)}
+                    style={{
+                      padding: "3px 8px", borderRadius: 8, fontSize: "0.72rem", fontWeight: 600,
+                      background: "var(--surface2)", border: "1px solid var(--border2)",
+                      color: loanStatus ? "var(--accent)" : "var(--text3)", cursor: "pointer",
+                    }}
+                  >
+                    <option value="">Loan status...</option>
+                    <option value="key_player">Key Player</option>
+                    <option value="important_player">Important Player</option>
+                    <option value="rotation">Rotation</option>
+                    <option value="backup">Backup</option>
+                    <option value="youth">Youth</option>
+                  </select>
+                )}
               </div>
               <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
                 {player.Mentality && <InfoItem label="Mentality" value={player.Mentality} />}
