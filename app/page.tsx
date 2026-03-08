@@ -17,8 +17,6 @@ interface Player {
   primary: string | null;
   archetype: string | null;
   archetype_confidence: string | null;
-  market_value_tier: number | null;
-  scarcity_score: number | null;
   pursuit_status: string | null;
   director_valuation_meur: number | null;
   fit_note: string | null;
@@ -26,14 +24,6 @@ interface Player {
 
 const POSITIONS = ["GK", "WD", "CD", "DM", "CM", "WM", "AM", "WF", "CF"];
 const PURSUIT_OPTIONS = ["Priority", "Interested", "Watch", "Pass"];
-const MVT_OPTIONS = [5, 4, 3, 2, 1];
-
-function mvtClass(mvt: number) {
-  if (mvt >= 5) return "badge badge-mvt5";
-  if (mvt >= 4) return "badge badge-mvt4";
-  if (mvt >= 3) return "badge badge-mvt3";
-  return "badge badge-mvt2";
-}
 
 function pursuitClass(status: string | null) {
   if (!status) return "";
@@ -51,7 +41,6 @@ export default function PlayersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [posFilter, setPosFilter] = useState("");
-  const [mvtFilter, setMvtFilter] = useState("");
   const [pursuitFilter, setPursuitFilter] = useState("");
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
@@ -65,7 +54,6 @@ export default function PlayersPage() {
     params.set("offset", String(newOffset));
     if (search) params.set("search", search);
     if (posFilter) params.set("position", posFilter);
-    if (mvtFilter) params.set("mvt", mvtFilter);
     if (pursuitFilter) params.set("pursuit", pursuitFilter);
 
     try {
@@ -83,7 +71,7 @@ export default function PlayersPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, posFilter, mvtFilter, pursuitFilter]);
+  }, [search, posFilter, pursuitFilter]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -121,11 +109,6 @@ export default function PlayersPage() {
             <option value="">All positions</option>
             {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
           </select>
-          <select value={mvtFilter} onChange={e => setMvtFilter(e.target.value)}
-            style={selectStyle}>
-            <option value="">All MVT</option>
-            {MVT_OPTIONS.map(v => <option key={v} value={v}>MVT {v}</option>)}
-          </select>
           <select value={pursuitFilter} onChange={e => setPursuitFilter(e.target.value)}
             style={selectStyle}>
             <option value="">All status</option>
@@ -140,7 +123,7 @@ export default function PlayersPage() {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "var(--bg)", zIndex: 2 }}>
-              {["Name", "Club", "Nation", "Pos", "MVT", "Level", "Archetype", "Status", "Fit Note"].map(h => (
+              {["Name", "Club", "Nation", "Pos", "Level", "Archetype", "Status", "Fit Note"].map(h => (
                 <th key={h} style={{
                   padding: "10px 12px", textAlign: "left", fontWeight: 700,
                   fontSize: "0.68rem", textTransform: "uppercase", letterSpacing: "0.08em",
@@ -151,9 +134,9 @@ export default function PlayersPage() {
           </thead>
           <tbody>
             {loading && !players.length ? (
-              <tr><td colSpan={9} style={{ padding: 40, textAlign: "center", color: "var(--text3)" }}>Loading...</td></tr>
+              <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "var(--text3)" }}>Loading...</td></tr>
             ) : !players.length ? (
-              <tr><td colSpan={9} style={{ padding: 40, textAlign: "center", color: "var(--text3)" }}>No players found</td></tr>
+              <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "var(--text3)" }}>No players found</td></tr>
             ) : players.map(p => (
               <Link key={p.id} href={`/players/${p.id}`} style={{ display: "contents", color: "inherit", textDecoration: "none" }}>
                 <tr style={{ borderBottom: "1px solid var(--border)", cursor: "pointer" }}
@@ -169,14 +152,11 @@ export default function PlayersPage() {
                     {p.position && <span className="badge badge-pos" style={{ fontSize: "0.7rem" }}>{p.position}</span>}
                     {p.secondary_position && <span style={{ color: "var(--text3)", fontSize: "0.7rem", marginLeft: 4 }}>{p.secondary_position}</span>}
                   </td>
-                  <td style={cellStyle}>
-                    {p.market_value_tier && <span className={mvtClass(p.market_value_tier)} style={{ fontSize: "0.7rem" }}>{p.market_value_tier}</span>}
-                  </td>
                   <td style={{ ...cellStyle, fontVariantNumeric: "tabular-nums" }}>
                     {p.level ?? "—"}
                   </td>
                   <td style={{ ...cellStyle, color: "var(--text3)", fontSize: "0.75rem" }}>
-                    {"—"}
+                    {p.archetype_confidence === "high" ? (p.archetype || "—") : "—"}
                   </td>
                   <td style={cellStyle}>
                     {p.pursuit_status && <span className={pursuitClass(p.pursuit_status)}>{p.pursuit_status}</span>}
