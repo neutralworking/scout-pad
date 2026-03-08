@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     );
   }
 
-  const row: Record<string, unknown> = { position };
+  const row: Record<string, unknown> = { position, source: "manual" };
 
   if (priority !== undefined) {
     const p = Number(priority);

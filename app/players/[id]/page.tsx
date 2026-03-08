@@ -12,7 +12,7 @@ interface Player {
   Physique: string | null; model: string | null;
   primary: string | null; secondary: string | null;
   archetype: string | null; archetype_confidence: string | null; archetype_override: string | null;
-  market_value_tier: number | null; scarcity_score: number | null;
+  scarcity_score: number | null;
   national_scarcity: number | null; market_premium: number | null;
   scouting_notes: string | null;
   pursuit_status: "Pass" | "Watch" | "Interested" | "Priority" | null;
@@ -22,6 +22,19 @@ interface Player {
   loan_status: string | null;
   blueprint: string | null;
   attributes: Record<string, string> | null;
+}
+
+interface PlayerTag {
+  id: number;
+  tag_id: number;
+  tag_name: string;
+  tag_category: string;
+}
+
+interface AvailableTag {
+  id: number;
+  name: string;
+  category: string;
 }
 
 interface Suitability {
@@ -39,7 +52,7 @@ const PURSUIT_OPTIONS = [
 ] as const;
 
 const FACTOR_MAX: Record<string, number> = {
-  Position: 30, "Market Value": 20, Archetype: 15, Foot: 10, Quality: 15, Scarcity: 9,
+  Position: 30, Archetype: 15, Foot: 10, Quality: 35, Scarcity: 9,
 };
 
 function tierLabel(v: number) {
@@ -84,6 +97,9 @@ export default function PlayerProfile() {
   const [saved, setSaved] = useState(false);
   const [suitability, setSuitability] = useState<Suitability | null>(null);
   const [neighbors, setNeighbors] = useState<{ prev: string | null; next: string | null }>({ prev: null, next: null });
+  const [playerTags, setPlayerTags] = useState<PlayerTag[]>([]);
+  const [allTags, setAllTags] = useState<AvailableTag[]>([]);
+  const [tagDropdownOpen, setTagDropdownOpen] = useState(false);
 
   // Editable fields
   const [pursuit, setPursuit] = useState<string>("");
@@ -131,7 +147,47 @@ export default function PlayerProfile() {
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setSuitability(d); })
       .catch(() => {});
+
+    fetch(`/api/players/${id}/tags`)
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setPlayerTags(d))
+      .catch(() => {});
+
+    fetch("/api/tags")
+      .then(r => r.ok ? r.json() : [])
+      .then(d => setAllTags(d))
+      .catch(() => {});
   }, [params.id, router]);
+
+  const handleAddTag = useCallback(async (tagId: number) => {
+    if (!player) return;
+    setTagDropdownOpen(false);
+    try {
+      const res = await fetch(`/api/players/${player.id}/tags`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag_id: tagId }),
+      });
+      if (res.ok) {
+        const tagsRes = await fetch(`/api/players/${player.id}/tags`);
+        if (tagsRes.ok) setPlayerTags(await tagsRes.json());
+      }
+    } catch {}
+  }, [player]);
+
+  const handleRemoveTag = useCallback(async (tagId: number) => {
+    if (!player) return;
+    try {
+      const res = await fetch(`/api/players/${player.id}/tags`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tag_id: tagId }),
+      });
+      if (res.ok) {
+        setPlayerTags(prev => prev.filter(t => t.tag_id !== tagId));
+      }
+    } catch {}
+  }, [player]);
 
   const handleSave = useCallback(async () => {
     if (!player || saving) return;
@@ -253,6 +309,59 @@ export default function PlayerProfile() {
               <h2 style={{ fontSize: "1.6rem", fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>
                 {player.name}
               </h2>
+              {/* Player tags */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 10, alignItems: "center" }}>
+                {playerTags.map(tag => (
+                  <span key={tag.id} style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    padding: "2px 8px", borderRadius: 12, fontSize: "0.68rem", fontWeight: 600,
+                    background: tag.tag_category === "award_contention" ? "var(--amber-dim)" : "var(--surface2)",
+                    color: tag.tag_category === "award_contention" ? "var(--amber)" : "var(--text2)",
+                    border: `1px solid ${tag.tag_category === "award_contention" ? "var(--amber)" : "var(--border2)"}`,
+                  }}>
+                    {tag.tag_name}
+                    <button onClick={() => handleRemoveTag(tag.tag_id)} style={{
+                      background: "none", border: "none", color: "inherit", cursor: "pointer",
+                      padding: 0, fontSize: "0.72rem", lineHeight: 1, opacity: 0.7,
+                    }}>&times;</button>
+                  </span>
+                ))}
+                <div style={{ position: "relative" }}>
+                  <button onClick={() => setTagDropdownOpen(v => !v)} style={{
+                    width: 22, height: 22, borderRadius: "50%", border: "1px solid var(--border2)",
+                    background: "var(--surface2)", color: "var(--text3)", cursor: "pointer",
+                    fontSize: "0.82rem", lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>+</button>
+                  {tagDropdownOpen && (
+                    <div style={{
+                      position: "absolute", top: 28, left: 0, zIndex: 50,
+                      background: "var(--surface)", border: "1px solid var(--border)",
+                      borderRadius: 8, padding: 4, minWidth: 200, maxHeight: 240, overflow: "auto",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    }}>
+                      {allTags
+                        .filter(t => !playerTags.some(pt => pt.tag_id === t.id))
+                        .map(t => (
+                          <button key={t.id} onClick={() => handleAddTag(t.id)} style={{
+                            display: "block", width: "100%", textAlign: "left",
+                            padding: "6px 10px", border: "none", borderRadius: 4,
+                            background: "transparent", color: "var(--text2)",
+                            fontSize: "0.75rem", cursor: "pointer",
+                          }}
+                          onMouseEnter={e => { e.currentTarget.style.background = "var(--surface2)"; }}
+                          onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+                          >
+                            <span style={{ color: "var(--text3)", fontSize: "0.65rem", marginRight: 6 }}>{t.category}</span>
+                            {t.name}
+                          </button>
+                        ))}
+                      {allTags.filter(t => !playerTags.some(pt => pt.tag_id === t.id)).length === 0 && (
+                        <div style={{ padding: "8px 10px", fontSize: "0.72rem", color: "var(--text3)" }}>All tags assigned</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
                 {player.club && <span className="badge badge-club">{player.club}</span>}
                 {player.division && <span className="badge badge-club">{player.division}</span>}
@@ -320,12 +429,6 @@ export default function PlayerProfile() {
                   <div>
                     <div style={{ fontSize: "1.8rem", fontWeight: 800, lineHeight: 1, color: "var(--text2)" }}>{player.peak}</div>
                     <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: 2 }}>Peak</div>
-                  </div>
-                )}
-                {player.market_value_tier != null && (
-                  <div>
-                    <div style={{ fontSize: "1.8rem", fontWeight: 800, lineHeight: 1, color: "var(--amber)" }}>{player.market_value_tier}</div>
-                    <div style={{ fontSize: "0.65rem", color: "var(--text3)", marginTop: 2 }}>MVT</div>
                   </div>
                 )}
               </div>

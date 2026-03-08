@@ -11,7 +11,7 @@ interface Player {
   Physique: string | null; model: string | null;
   primary: string | null; secondary: string | null;
   archetype: string | null; archetype_override: string | null;
-  market_value_tier: number | null; scarcity_score: number | null;
+  scarcity_score: number | null;
   national_scarcity: number | null; market_premium: number | null;
   scouting_notes: string | null;
   pursuit_status: "Pass" | "Watch" | "Interested" | "Priority" | null;
@@ -102,13 +102,6 @@ function tierLabel(v: number) {
   if (v >= 82) return "Top Flight";
   if (v >= 78) return "Championship";
   return "Lower League";
-}
-
-function mvtClass(mvt: number) {
-  if (mvt >= 5) return "badge badge-mvt5";
-  if (mvt >= 4) return "badge badge-mvt4";
-  if (mvt >= 3) return "badge badge-mvt3";
-  return "badge badge-mvt2";
 }
 
 function dots(score: number | null, max = 5) {
@@ -240,8 +233,8 @@ function MyCallTab({ player, dof, onDofChange }: {
             />
             <span className="val-unit">M€</span>
           </div>
-          {player.market_value_tier && (
-            <span className="val-hint">market: MVT {player.market_value_tier}{hint ? ` · ${hint}` : ""}</span>
+          {hint && (
+            <span className="val-hint">{hint}</span>
           )}
         </div>
       </div>
@@ -389,7 +382,6 @@ function Card({ player, dof, data, onDofChange, onDataChange, onSave, onSkip, pr
 }) {
   const [tab, setTab] = useState<"mycall" | "data">("mycall");
 
-  const mvt = player.market_value_tier;
   const arch = player.archetype_override ?? player.archetype;
   const pos = player.position;
 
@@ -442,7 +434,6 @@ function Card({ player, dof, data, onDofChange, onDataChange, onSave, onSkip, pr
           {player.club && <span className="badge badge-club">{player.club.trim()}</span>}
           {!player.club && player.division && <span className="badge badge-club">{player.division}</span>}
           {player.nation && <span className="badge badge-nation">{player.nation}</span>}
-          {mvt && <span className={mvtClass(mvt)}>MVT {mvt}</span>}
           {pos && <span className="badge badge-pos">{pos}</span>}
         </div>
         <div className="brief-metrics">

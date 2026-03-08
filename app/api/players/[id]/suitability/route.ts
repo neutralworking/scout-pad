@@ -9,10 +9,9 @@ const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SE
  *
  * Factors:
  *  - Position match  (0–30 pts)
- *  - MVT vs min_mvt  (0–20 pts)
  *  - Archetype fit   (0–15 pts)
  *  - Foot preference  (0–10 pts)
- *  - Level/peak      (0–15 pts)
+ *  - Quality (level/peak)  (0–35 pts)
  *  - Scarcity bonus  (0–9 pts)
  *
  * The best-matching need is used (highest score).
@@ -27,7 +26,7 @@ export async function GET(
   const [playerRes, needsRes] = await Promise.all([
     supabase
       .from("players")
-      .select("id, name, position, secondary_position, market_value_tier, level, peak, archetype, archetype_override, scarcity_score, Foot")
+      .select("id, name, position, secondary_position, level, peak, archetype, archetype_override, scarcity_score, Foot")
       .eq("id", id)
       .single(),
     supabase.from("club_needs").select("*").order("priority", { ascending: false }),
@@ -71,17 +70,6 @@ export async function GET(
 
     if (posPts === 0) continue;
 
-    // MVT vs minimum (0–20)
-    const mvt = player.market_value_tier ?? 0;
-    const minMvt = need.min_mvt ?? 3;
-    const mvtDiff = mvt - minMvt;
-    const mvtPts = Math.min(20, Math.max(0, 10 + mvtDiff * 5));
-    breakdown.push({
-      factor: "Market Value",
-      points: mvtPts,
-      detail: `MVT ${mvt} vs min ${minMvt}`,
-    });
-
     // Archetype fit (0–15)
     let archPts = 7;
     if (need.preferred_archetype) {
@@ -108,14 +96,15 @@ export async function GET(
         : "No preference",
     });
 
-    // Level/Peak (0–15)
+    // Level/Peak quality (0–35, replaces old MVT + Level split)
     const level = player.level ?? 70;
     const peak = player.peak ?? level;
-    const levelPts = Math.min(15, Math.max(0, Math.round((Math.max(level, peak) - 70) / 2)));
+    const best = Math.max(level, peak);
+    const qualityPts = Math.min(35, Math.max(0, Math.round((best - 70) * 1.4)));
     breakdown.push({
       factor: "Quality",
-      points: levelPts,
-      detail: `Level ${level}, Peak ${peak}`,
+      points: qualityPts,
+      detail: level ? `Level ${level}, Peak ${peak}` : "No level data",
     });
 
     // Scarcity bonus (0–9)

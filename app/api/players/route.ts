@@ -28,8 +28,8 @@ const ALLOWED = [
 ];
 
 const SORT_FIELDS: Record<string, { column: string; ascending: boolean; nullsFirst: boolean }> = {
-  market_value_tier_desc: { column: "market_value_tier", ascending: false, nullsFirst: false },
-  market_value_tier_asc:  { column: "market_value_tier", ascending: true,  nullsFirst: true },
+  level_desc:             { column: "level",             ascending: false, nullsFirst: false },
+  level_asc:              { column: "level",             ascending: true,  nullsFirst: true },
   name_asc:               { column: "name",              ascending: true,  nullsFirst: false },
   name_desc:              { column: "name",              ascending: false, nullsFirst: false },
   scarcity_score_desc:    { column: "scarcity_score",    ascending: false, nullsFirst: false },
@@ -42,10 +42,9 @@ export async function GET(req: Request) {
   const offset   = parseInt(searchParams.get("offset") ?? "0");
   const search   = searchParams.get("search")?.trim()   ?? "";
   const position = searchParams.get("position")          ?? "";
-  const mvt      = searchParams.get("mvt")               ?? "";
   const pursuit  = searchParams.get("pursuit")           ?? "";
   const division = searchParams.get("division")          ?? "";
-  const sortKey  = searchParams.get("sort")              ?? "market_value_tier_desc";
+  const sortKey  = searchParams.get("sort")              ?? "level_desc";
 
   let query = supabase
     .from("players")
@@ -60,10 +59,6 @@ export async function GET(req: Request) {
 
   if (position) {
     query = query.eq("position", position);
-  }
-
-  if (mvt) {
-    query = query.eq("market_value_tier", mvt);
   }
 
   if (pursuit === "unset") {
@@ -81,7 +76,7 @@ export async function GET(req: Request) {
 
   // --- sorting ---
 
-  const sort = SORT_FIELDS[sortKey] ?? SORT_FIELDS["market_value_tier_desc"];
+  const sort = SORT_FIELDS[sortKey] ?? SORT_FIELDS["level_desc"];
   query = query
     .order("pursuit_status", { ascending: true, nullsFirst: true })
     .order(sort.column, { ascending: sort.ascending, nullsFirst: sort.nullsFirst });
