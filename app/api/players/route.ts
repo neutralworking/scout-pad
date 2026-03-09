@@ -7,25 +7,27 @@ const SELECT = [
   "id","name","club","division","nation",
   "position","secondary_position",
   "level","peak",
-  '"Character"','"Mentality"','"Foot"','"Physique"',
-  "model",'"primary"','"secondary"',
   "archetype","archetype_confidence","archetype_override",
   "market_value_tier","scarcity_score","national_scarcity","market_premium",
   "scouting_notes",
   "pursuit_status","director_valuation_meur","fit_note",
   "squad_role","loan_status",
-  "blueprint","attributes",
+  "blueprint",
 ].join(", ");
 
-const ALLOWED = [
-  "position","secondary_position","level","peak",
-  "Character","Mentality","Foot","Physique",
-  "model","primary","secondary","archetype_override",
-  "scouting_notes",
-  "pursuit_status","director_valuation_meur","fit_note",
-  "squad_role","loan_status",
-  "blueprint","attributes",
-];
+// Maps each editable field to its target table
+const FIELD_TABLE: Record<string, string> = {
+  // player_profiles
+  position: "player_profiles", secondary_position: "player_profiles",
+  level: "player_profiles", peak: "player_profiles",
+  archetype_override: "player_profiles", blueprint: "player_profiles",
+  // player_status
+  scouting_notes: "player_status", pursuit_status: "player_status",
+  fit_note: "player_status", squad_role: "player_status", loan_status: "player_status",
+  // player_market
+  director_valuation_meur: "player_market",
+};
+const ALLOWED = Object.keys(FIELD_TABLE);
 
 const SORT_FIELDS: Record<string, { column: string; ascending: boolean; nullsFirst: boolean }> = {
   level_desc:             { column: "level",             ascending: false, nullsFirst: false },
@@ -97,16 +99,21 @@ export async function PATCH(req: Request) {
   const { id, ...fields } = body;
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  const update: Record<string, unknown> = {};
+  // Group updates by target table
+  const updates: Record<string, Record<string, unknown>> = {};
   for (const key of ALLOWED) {
     if (key in fields && fields[key] !== undefined) {
-      update[key] = fields[key] === "" ? null : fields[key];
+      const table = FIELD_TABLE[key];
+      if (!updates[table]) updates[table] = {};
+      updates[table][key] = fields[key] === "" ? null : fields[key];
     }
   }
-  if (!Object.keys(update).length)
+  if (!Object.keys(updates).length)
     return NextResponse.json({ error: "nothing to update" }, { status: 400 });
 
-  const { error } = await supabase.from("players").update(update).eq("id", id);
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  for (const [table, payload] of Object.entries(updates)) {
+    const { error } = await supabase.from(table).update(payload).eq("person_id", id);
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  }
   return NextResponse.json({ ok: true });
 }

@@ -26,7 +26,7 @@ export async function GET(
   const [playerRes, needsRes] = await Promise.all([
     supabase
       .from("players")
-      .select("id, name, position, secondary_position, level, peak, archetype, archetype_override, scarcity_score, Foot")
+      .select("id, name, position, secondary_position, level, peak, archetype, archetype_override, scarcity_score, preferred_foot")
       .eq("id", id)
       .single(),
     supabase.from("club_needs").select("*").order("priority", { ascending: false }),
@@ -85,8 +85,8 @@ export async function GET(
 
     // Foot preference (0–10)
     let footPts = 5;
-    if (need.preferred_foot && player.Foot) {
-      footPts = player.Foot.toLowerCase().includes(need.preferred_foot.toLowerCase()) ? 10 : 2;
+    if (need.preferred_foot && player.preferred_foot) {
+      footPts = player.preferred_foot.toLowerCase().includes(need.preferred_foot.toLowerCase()) ? 10 : 2;
     }
     breakdown.push({
       factor: "Foot",

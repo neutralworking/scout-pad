@@ -12,9 +12,6 @@ interface Player {
   secondary_position: string | null;
   level: number | null;
   peak: number | null;
-  Character: string | null;
-  Mentality: string | null;
-  primary: string | null;
   archetype: string | null;
   archetype_confidence: string | null;
   pursuit_status: string | null;

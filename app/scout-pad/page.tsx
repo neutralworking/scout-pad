@@ -7,9 +7,6 @@ interface Player {
   id: number; name: string; club: string | null; division: string | null;
   nation: string | null; position: string | null; secondary_position: string | null;
   level: number | null; peak: number | null;
-  Character: string | null; Mentality: string | null; Foot: string | null;
-  Physique: string | null; model: string | null;
-  primary: string | null; secondary: string | null;
   archetype: string | null; archetype_override: string | null;
   scarcity_score: number | null;
   national_scarcity: number | null; market_premium: number | null;
@@ -17,6 +14,11 @@ interface Player {
   pursuit_status: "Pass" | "Watch" | "Interested" | "Priority" | null;
   director_valuation_meur: number | null;
   fit_note: string | null;
+  // Legacy fields — will be null until migrated to dedicated endpoints
+  Character?: string | null;
+  Mentality?: string | null; Foot?: string | null;
+  Physique?: string | null; model?: string | null;
+  primary?: string | null; secondary?: string | null;
 }
 
 interface DofDraft {
@@ -283,7 +285,7 @@ function DataTab({ player, data, onDataChange }: {
   const pos   = data.position           ?? player.position;
   const pos2  = data.secondary_position ?? player.secondary_position;
   const ment  = data.Mentality          ?? player.Mentality;
-  const foot  = data.Foot               ?? normFoot(player.Foot);
+  const foot  = data.Foot               ?? normFoot(player.Foot ?? null);
   const phys  = data.Physique           ?? player.Physique;
   const model = data.model              ?? player.model;
   const prim  = data.primary            ?? player.primary;

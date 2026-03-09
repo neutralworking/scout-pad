@@ -4,30 +4,44 @@ import { NextResponse } from "next/server";
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
 
 export async function GET() {
-  const { data, error } = await supabase
+  // Get award contention tags
+  const { data: tagData, error: tagErr } = await supabase
     .from("player_tags")
-    .select("player_id, tag_id, tags(name, category), players(id, name, club, position, level, peak)")
+    .select("player_id, tag_id, tags(name, category)")
     .eq("tags.category", "award_contention");
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (tagErr) return NextResponse.json({ error: tagErr.message }, { status: 500 });
 
-  // Filter out rows where the join didn't match (tags.category filter makes non-matching rows have null tags)
-  const rows = (data ?? [])
-    .filter((r: Record<string, unknown>) => r.tags !== null)
+  const filtered = (tagData ?? []).filter((r: Record<string, unknown>) => r.tags !== null);
+  if (filtered.length === 0) return NextResponse.json([]);
+
+  const playerIds = filtered.map((r: Record<string, unknown>) => r.player_id as number);
+
+  // Fetch player data from the compatibility view
+  const { data: playerData, error: playerErr } = await supabase
+    .from("players")
+    .select("id, name, club, position, level, peak")
+    .in("id", playerIds);
+
+  if (playerErr) return NextResponse.json({ error: playerErr.message }, { status: 500 });
+
+  const playerMap = new Map((playerData ?? []).map((p: Record<string, unknown>) => [p.id, p]));
+
+  const rows = filtered
     .map((r: Record<string, unknown>) => {
       const tag = r.tags as { name: string; category: string };
-      const player = r.players as { id: number; name: string; club: string | null; position: string | null; level: number | null; peak: number | null };
+      const player = playerMap.get(r.player_id) as Record<string, unknown> | undefined;
       return {
-        id: player.id,
-        name: player.name,
-        club: player.club,
-        position: player.position,
-        level: player.level,
-        peak: player.peak,
+        id: r.player_id,
+        name: player?.name ?? null,
+        club: player?.club ?? null,
+        position: player?.position ?? null,
+        level: player?.level as number | null ?? null,
+        peak: player?.peak ?? null,
         tag_name: tag.name,
       };
     })
-    .sort((a: { level: number | null }, b: { level: number | null }) => (b.level ?? 0) - (a.level ?? 0));
+    .sort((a, b) => (b.level ?? 0) - (a.level ?? 0));
 
   return NextResponse.json(rows);
 }

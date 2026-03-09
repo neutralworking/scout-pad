@@ -8,9 +8,6 @@ interface Player {
   id: number; name: string; club: string | null; division: string | null;
   nation: string | null; position: string | null; secondary_position: string | null;
   level: number | null; peak: number | null;
-  Character: string | null; Mentality: string | null; Foot: string | null;
-  Physique: string | null; model: string | null;
-  primary: string | null; secondary: string | null;
   archetype: string | null; archetype_confidence: string | null; archetype_override: string | null;
   scarcity_score: number | null;
   national_scarcity: number | null; market_premium: number | null;
@@ -21,7 +18,12 @@ interface Player {
   squad_role: string | null;
   loan_status: string | null;
   blueprint: string | null;
-  attributes: Record<string, string> | null;
+  // Legacy fields — will be null until migrated to dedicated endpoints
+  Character?: string | null;
+  Mentality?: string | null; Foot?: string | null;
+  Physique?: string | null; model?: string | null;
+  primary?: string | null; secondary?: string | null;
+  attributes?: Record<string, string> | null;
 }
 
 interface PlayerTag {
