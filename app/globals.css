@@ -1,23 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #080c12;
-  --surface: #0f1520;
-  --surface2: #161e2e;
-  --border: #1e2a3a;
-  --border2: #253040;
-  --accent: #4f8ef7;
-  --accent-dim: rgba(79,142,247,0.15);
-  --green: #22c55e;
-  --green-dim: rgba(34,197,94,0.12);
-  --amber: #f59e0b;
-  --amber-dim: rgba(245,158,11,0.12);
-  --amber-glow: rgba(245,158,11,0.35);
-  --text: #e8edf5;
-  --text2: #8899aa;
-  --text3: #4a5a6a;
-  --pitch: #0a1f0a;
-  --pitch-line: rgba(255,255,255,0.06);
+  --bg: #0a0a12;
+  --surface: #0d0d1a;
+  --surface2: #141428;
+  --border: #1a1a3a;
+  --border2: #252550;
+  --accent: #00f0ff;
+  --accent-dim: rgba(0,240,255,0.12);
+  --green: #39ff14;
+  --green-dim: rgba(57,255,20,0.10);
+  --amber: #ff2a6d;
+  --amber-dim: rgba(255,42,109,0.12);
+  --amber-glow: rgba(255,42,109,0.35);
+  --text: #e0e0f0;
+  --text2: #7a7a9a;
+  --text3: #4a4a6a;
+  --pitch: #0a0a1a;
+  --pitch-line: rgba(0,240,255,0.06);
+  --neon-purple: #b829e3;
+  --neon-purple-dim: rgba(184,41,227,0.12);
+  --neon-yellow: #f0e130;
 }
 
 * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -25,8 +28,11 @@ html, body { height: 100%; overflow: hidden; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif;
+  font-family: var(--font-mono), "Courier New", monospace;
   overscroll-behavior: none;
+}
+h1, h2, h3, h4, h5, h6, .topbar-logo, .sh, .dof-label {
+  font-family: var(--font-orbitron), var(--font-mono), monospace;
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */

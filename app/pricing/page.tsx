@@ -140,16 +140,20 @@ function PricingContent() {
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <h1
           style={{
-            fontSize: "1.8rem",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
+            fontSize: "1.6rem",
+            fontWeight: 900,
+            letterSpacing: "0.08em",
             marginBottom: 8,
+            fontFamily: "var(--font-orbitron), monospace",
+            color: "var(--accent)",
+            textShadow: "0 0 20px rgba(0,240,255,0.4), 0 0 40px rgba(0,240,255,0.15)",
+            textTransform: "uppercase",
           }}
         >
-          Choose your plan
+          Select Protocol
         </h1>
-        <p style={{ color: "var(--text2)", fontSize: "0.9rem" }}>
-          Scale your scouting operation with the right tools.
+        <p style={{ color: "var(--text2)", fontSize: "0.8rem", fontFamily: "var(--font-mono), monospace" }}>
+          &gt; upgrade your scouting clearance level
         </p>
 
         {/* Annual toggle */}
@@ -159,24 +163,25 @@ function PricingContent() {
             alignItems: "center",
             gap: 12,
             marginTop: 20,
-            padding: "6px 8px",
-            borderRadius: 10,
+            padding: "4px 6px",
+            borderRadius: 2,
             background: "var(--surface2)",
-            border: "1px solid var(--border)",
+            border: "1px solid var(--border2)",
           }}
         >
           <button
             onClick={() => setAnnual(false)}
             style={{
               padding: "6px 16px",
-              borderRadius: 7,
-              border: "none",
-              fontSize: "0.8rem",
+              borderRadius: 2,
+              border: !annual ? "1px solid var(--accent)" : "1px solid transparent",
+              fontSize: "0.75rem",
               fontWeight: 600,
               cursor: "pointer",
-              background: !annual ? "var(--accent)" : "transparent",
-              color: !annual ? "white" : "var(--text3)",
+              background: !annual ? "var(--accent-dim)" : "transparent",
+              color: !annual ? "var(--accent)" : "var(--text3)",
               transition: "all 0.15s",
+              fontFamily: "var(--font-mono), monospace",
             }}
           >
             Monthly
@@ -185,26 +190,28 @@ function PricingContent() {
             onClick={() => setAnnual(true)}
             style={{
               padding: "6px 16px",
-              borderRadius: 7,
-              border: "none",
-              fontSize: "0.8rem",
+              borderRadius: 2,
+              border: annual ? "1px solid var(--accent)" : "1px solid transparent",
+              fontSize: "0.75rem",
               fontWeight: 600,
               cursor: "pointer",
-              background: annual ? "var(--accent)" : "transparent",
-              color: annual ? "white" : "var(--text3)",
+              background: annual ? "var(--accent-dim)" : "transparent",
+              color: annual ? "var(--accent)" : "var(--text3)",
               transition: "all 0.15s",
+              fontFamily: "var(--font-mono), monospace",
             }}
           >
             Annual
             <span
               style={{
                 marginLeft: 6,
-                fontSize: "0.7rem",
+                fontSize: "0.65rem",
                 padding: "1px 6px",
-                borderRadius: 4,
+                borderRadius: 2,
                 background: "var(--green-dim)",
                 color: "var(--green)",
                 fontWeight: 700,
+                textShadow: "0 0 8px rgba(57,255,20,0.4)",
               }}
             >
               Save 25%
@@ -232,7 +239,7 @@ function PricingContent() {
               key={tier.id}
               style={{
                 padding: 24,
-                borderRadius: 14,
+                borderRadius: 2,
                 background: "var(--surface)",
                 border: tier.popular
                   ? "1px solid var(--accent)"
@@ -241,7 +248,7 @@ function PricingContent() {
                 flexDirection: "column",
                 position: "relative",
                 boxShadow: tier.popular
-                  ? "0 0 24px rgba(79,142,247,0.12)"
+                  ? "0 0 30px rgba(0,240,255,0.15), inset 0 0 30px rgba(0,240,255,0.03)"
                   : "none",
               }}
             >
@@ -253,24 +260,31 @@ function PricingContent() {
                     left: "50%",
                     transform: "translateX(-50%)",
                     padding: "3px 12px",
-                    borderRadius: 6,
-                    background: "var(--accent)",
-                    color: "white",
-                    fontSize: "0.65rem",
+                    borderRadius: 2,
+                    background: "var(--accent-dim)",
+                    color: "var(--accent)",
+                    fontSize: "0.6rem",
                     fontWeight: 700,
-                    letterSpacing: "0.06em",
+                    letterSpacing: "0.12em",
                     textTransform: "uppercase",
+                    fontFamily: "var(--font-orbitron), monospace",
+                    border: "1px solid var(--accent)",
+                    textShadow: "0 0 10px rgba(0,240,255,0.5)",
                   }}
                 >
-                  Most Popular
+                  Recommended
                 </div>
               )}
 
               <h2
                 style={{
-                  fontSize: "1.1rem",
-                  fontWeight: 700,
+                  fontSize: "0.9rem",
+                  fontWeight: 800,
                   marginBottom: 4,
+                  fontFamily: "var(--font-orbitron), monospace",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: tier.popular ? "var(--accent)" : "var(--text)",
                 }}
               >
                 {tier.name}
@@ -291,7 +305,10 @@ function PricingContent() {
                   style={{
                     fontSize: "2rem",
                     fontWeight: 900,
-                    letterSpacing: "-0.03em",
+                    letterSpacing: "-0.02em",
+                    fontFamily: "var(--font-orbitron), monospace",
+                    color: tier.popular ? "var(--accent)" : "var(--text)",
+                    textShadow: tier.popular ? "0 0 15px rgba(0,240,255,0.3)" : "none",
                   }}
                 >
                   {price === 0 ? "Free" : `\u00A3${price}`}
@@ -336,7 +353,7 @@ function PricingContent() {
                       height="14"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="var(--green)"
+                      stroke="var(--accent)"
                       strokeWidth="2.5"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -358,22 +375,26 @@ function PricingContent() {
                 style={{
                   width: "100%",
                   height: 42,
-                  borderRadius: 10,
+                  borderRadius: 2,
                   border: isCurrent
                     ? "1px solid var(--green)"
-                    : "1px solid var(--border2)",
+                    : "1px solid var(--accent)",
                   background: isCurrent
                     ? "var(--green-dim)"
                     : tier.id === "free" || isDowngrade
                     ? "var(--surface2)"
-                    : "var(--accent)",
+                    : "var(--accent-dim)",
                   color: isCurrent
                     ? "var(--green)"
                     : tier.id === "free" || isDowngrade
                     ? "var(--text3)"
-                    : "white",
-                  fontSize: "0.85rem",
+                    : "var(--accent)",
+                  fontSize: "0.75rem",
                   fontWeight: 700,
+                  fontFamily: "var(--font-orbitron), monospace",
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase" as const,
+                  boxShadow: !isCurrent && !isDowngrade && tier.id !== "free" ? "0 0 15px rgba(0,240,255,0.15)" : "none",
                   cursor:
                     isCurrent || isDowngrade || tier.id === "free"
                       ? "default"

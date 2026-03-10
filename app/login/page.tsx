@@ -40,11 +40,7 @@ export default function LoginPage() {
         return;
       }
 
-      // login
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
 
       router.push("/");
@@ -57,60 +53,80 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--bg, #0e0e10)",
-        padding: 20,
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 380,
-          background: "var(--surface, #1a1a2e)",
-          border: "1px solid var(--border, #2a2a3e)",
-          borderRadius: 12,
-          padding: 32,
-        }}
-      >
-        <h1
-          style={{
-            fontSize: 20,
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "var(--bg)",
+      padding: 20,
+    }}>
+      <div style={{
+        width: "100%",
+        maxWidth: 380,
+        background: "var(--surface)",
+        border: "1px solid var(--accent)",
+        borderRadius: 2,
+        padding: "36px 32px 32px",
+        boxShadow: "0 0 30px rgba(0,240,255,0.15), inset 0 0 30px rgba(0,240,255,0.03)",
+      }}>
+        {/* Brand */}
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <div style={{
+            fontSize: "0.58rem",
             fontWeight: 700,
-            color: "var(--text, #e0e0e0)",
-            marginBottom: 4,
-            textAlign: "center",
-          }}
-        >
-          Chief Scout
-        </h1>
-        <p
-          style={{
-            fontSize: 13,
-            color: "var(--text2, #888)",
-            textAlign: "center",
-            marginBottom: 24,
-          }}
-        >
-          {mode === "login" && "Sign in to your account"}
-          {mode === "signup" && "Create a new account"}
-          {mode === "magic" && "Sign in with a magic link"}
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "var(--accent)",
+            marginBottom: 6,
+            fontFamily: "var(--font-mono), monospace",
+          }}>
+            Scouting Intelligence
+          </div>
+          <h1 style={{
+            fontSize: "1.4rem",
+            fontWeight: 900,
+            color: "var(--accent)",
+            letterSpacing: "0.06em",
+            margin: 0,
+            fontFamily: "var(--font-orbitron), monospace",
+            textShadow: "0 0 20px rgba(0,240,255,0.5), 0 0 40px rgba(0,240,255,0.2)",
+          }}>
+            CHIEF SCOUT
+          </h1>
+          <div style={{
+            width: 40,
+            height: 1,
+            background: "var(--accent)",
+            margin: "10px auto 0",
+            boxShadow: "0 0 8px var(--accent)",
+          }} />
+        </div>
+
+        {/* Mode subtitle */}
+        <p style={{
+          fontSize: "0.72rem",
+          color: "var(--text2)",
+          textAlign: "center",
+          marginBottom: 20,
+          fontFamily: "var(--font-mono), monospace",
+          letterSpacing: "0.04em",
+        }}>
+          {mode === "login" && "> sign_in --account"}
+          {mode === "signup" && "> create --new-account"}
+          {mode === "magic" && "> auth --magic-link"}
         </p>
 
         <form onSubmit={handleSubmit}>
-          <label
-            style={{
-              display: "block",
-              fontSize: 12,
-              fontWeight: 500,
-              color: "var(--text2, #888)",
-              marginBottom: 4,
-            }}
-          >
+          <label style={{
+            display: "block",
+            fontSize: "0.62rem",
+            fontWeight: 700,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "var(--text3)",
+            marginBottom: 5,
+          }}>
             Email
           </label>
           <input
@@ -118,32 +134,36 @@ export default function LoginPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            placeholder="you@example.com"
             style={{
               width: "100%",
-              padding: "10px 12px",
-              fontSize: 14,
-              background: "var(--bg, #0e0e10)",
-              border: "1px solid var(--border, #2a2a3e)",
-              borderRadius: 8,
-              color: "var(--text, #e0e0e0)",
-              marginBottom: 12,
+              padding: "9px 12px",
+              fontSize: "0.85rem",
+              background: "var(--surface2)",
+              border: "1px solid var(--border)",
+              borderRadius: 2,
+              color: "var(--text)",
+              marginBottom: 14,
               boxSizing: "border-box",
               outline: "none",
+              fontFamily: "inherit",
+              transition: "border-color 0.15s",
             }}
-            placeholder="you@example.com"
+            onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; e.currentTarget.style.boxShadow = "0 0 10px rgba(0,240,255,0.2)"; }}
+            onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.boxShadow = "none"; }}
           />
 
           {mode !== "magic" && (
             <>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "var(--text2, #888)",
-                  marginBottom: 4,
-                }}
-              >
+              <label style={{
+                display: "block",
+                fontSize: "0.62rem",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "var(--text3)",
+                marginBottom: 5,
+              }}>
                 Password
               </label>
               <input
@@ -152,51 +172,53 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                placeholder="Min 6 characters"
                 style={{
                   width: "100%",
-                  padding: "10px 12px",
-                  fontSize: 14,
-                  background: "var(--bg, #0e0e10)",
-                  border: "1px solid var(--border, #2a2a3e)",
-                  borderRadius: 8,
-                  color: "var(--text, #e0e0e0)",
-                  marginBottom: 12,
+                  padding: "9px 12px",
+                  fontSize: "0.85rem",
+                  background: "var(--surface2)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 2,
+                  color: "var(--text)",
+                  marginBottom: 14,
                   boxSizing: "border-box",
                   outline: "none",
+                  fontFamily: "inherit",
+                  transition: "border-color 0.15s",
                 }}
-                placeholder="Min 6 characters"
+                onFocus={(e) => { e.currentTarget.style.borderColor = "var(--accent)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
               />
             </>
           )}
 
           {error && (
-            <p
-              style={{
-                fontSize: 13,
-                color: "#ef4444",
-                marginBottom: 12,
-                padding: "8px 10px",
-                background: "rgba(239,68,68,0.1)",
-                borderRadius: 6,
-              }}
-            >
+            <div style={{
+              fontSize: "0.78rem",
+              color: "var(--amber)",
+              marginBottom: 14,
+              padding: "8px 10px",
+              background: "var(--amber-dim)",
+              border: "1px solid rgba(245,158,11,0.25)",
+              borderRadius: 2,
+            }}>
               {error}
-            </p>
+            </div>
           )}
 
           {message && (
-            <p
-              style={{
-                fontSize: 13,
-                color: "var(--accent, #6c63ff)",
-                marginBottom: 12,
-                padding: "8px 10px",
-                background: "rgba(108,99,255,0.1)",
-                borderRadius: 6,
-              }}
-            >
+            <div style={{
+              fontSize: "0.78rem",
+              color: "var(--green)",
+              marginBottom: 14,
+              padding: "8px 10px",
+              background: "var(--green-dim)",
+              border: "1px solid rgba(34,197,94,0.25)",
+              borderRadius: 2,
+            }}>
               {message}
-            </p>
+            </div>
           )}
 
           <button
@@ -204,36 +226,34 @@ export default function LoginPage() {
             disabled={loading}
             style={{
               width: "100%",
-              padding: "10px 0",
-              fontSize: 14,
-              fontWeight: 600,
-              background: "var(--accent, #6c63ff)",
-              color: "#fff",
-              border: "none",
-              borderRadius: 8,
+              height: 42,
+              fontSize: "0.8rem",
+              fontWeight: 700,
+              background: "transparent",
+              color: "var(--accent)",
+              border: "1px solid var(--accent)",
+              borderRadius: 2,
               cursor: loading ? "not-allowed" : "pointer",
               opacity: loading ? 0.6 : 1,
               marginBottom: 16,
+              transition: "all 0.15s",
+              fontFamily: "var(--font-orbitron), monospace",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase" as const,
+              boxShadow: "0 0 15px rgba(0,240,255,0.2)",
             }}
           >
             {loading
-              ? "..."
+              ? ">>>"
               : mode === "login"
-              ? "Sign In"
+              ? "[ ENTER ]"
               : mode === "signup"
-              ? "Sign Up"
-              : "Send Magic Link"}
+              ? "[ CREATE ]"
+              : "[ SEND LINK ]"}
           </button>
         </form>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            alignItems: "center",
-          }}
-        >
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center" }}>
           {mode === "login" && (
             <>
               <button
@@ -275,10 +295,10 @@ export default function LoginPage() {
 const linkStyle: React.CSSProperties = {
   background: "none",
   border: "none",
-  color: "var(--accent, #6c63ff)",
-  fontSize: 13,
+  color: "var(--text3)",
+  fontSize: "0.75rem",
   cursor: "pointer",
   padding: 0,
-  textDecoration: "underline",
-  textUnderlineOffset: 2,
+  fontFamily: "inherit",
+  transition: "color 0.15s",
 };
